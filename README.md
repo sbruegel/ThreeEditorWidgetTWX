@@ -46,4 +46,12 @@ This wonderful entry point of a webpack script gives you the ability to build an
 
 if not already created please create a **credentials.json** in the root of this project. Because of security reasons it is not part of this repo and will be excluded by gitignore!
 
+```
+{
+    "thingworxServer": "https://ServerNameWithoutThingworx:8080",
+    "thingworxUser": "Administrator",
+    "thingworxPassword": "pwString"
+}
+```
+
 `npm run upload`
