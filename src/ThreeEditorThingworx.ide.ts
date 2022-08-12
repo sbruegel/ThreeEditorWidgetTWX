@@ -1,18 +1,18 @@
 // automatically import the css file
-import { ThingworxComposerWidget } from 'typescriptwebpacksupport';
+import { ThingworxComposerWidget } from 'typescriptwebpacksupport/widgetIDESupport';
 
 @ThingworxComposerWidget
-class ThreeModelViewer extends TWComposerWidget {
+class ThreeEditorThingworx extends TWComposerWidget {
 
     widgetIconUrl(): string {
-        return require('./images/ThreeModelViewer.png');
+        return require('./images/ThreeEditorThingworx.png');
     }
 
     widgetProperties(): TWWidgetProperties {
         require("./styles/ThreeModelViewer.ide.css");
         return {
-            'name': 'Three Model Viewer',
-            'description': 'Three Js based 3d Model viewr',
+            'name': 'Three Editor',
+            'description': 'Three Js based 3d Editor',
             'category': ['Common'],
             'supportsAutoResize': true,
             'properties': {

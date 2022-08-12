@@ -1,19 +1,16 @@
 {
-    "name": "ThreeModelViewer",
-    "version": "1.5.0",
-    "description": "Three.JS model viewer for thingworx",
-    "thingworxServer": "http://localhost:8075",
-    "thingworxUser": "Administrator",
-    "thingworxPassword": "Administrator",
-    "author": "Thingworx RoIcenter placatus",
+    "name": "ThreeEditorThingworx",
+    "version": "1.0.0",
+    "description": "Three.JS editor for ThingWorx",
+    "author": "placatus, sbruegel & stincescu",
     "minimumThingWorxVersion": "6.0.0",
-    "homepage": "https://github.com/ptc-iot-sharing//ThreeViewerWidgetTWX",
+    "homepage": "https://github.com/sbruegel/ThreeEditorWidgetTWX",
     "autoUpdate": {
-        "gitHubURL": "https://api.github.com/repos/ptc-iot-sharing/ThreeViewerWidgetTWX/releases/latest"
+        "gitHubURL": "https://api.github.com/repos/sbruegel/ThreeEditorWidgetTWX/releases/latest"
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/ptc-iot-sharing//ThreeViewerWidgetTWX.git"
+        "url": "git@github.com:sbruegel/ThreeEditorWidgetTWX.git"
     },
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
@@ -36,7 +33,6 @@
         "copy-webpack-plugin": "^5.0.4",
         "css-loader": "^3.2.0",
         "dtsbundler-webpack-plugin": "github:stefan-lacatus/dtsbundler-webpack-plugin#master",
-        "extract-text-webpack-plugin": "^3.0.2",
         "file-loader": "^4.2.0",
         "fork-ts-checker-webpack-plugin": "^1.5.0",
         "request": "^2.88.0",
@@ -55,9 +51,11 @@
     },
     "dependencies": {
         "@tweenjs/tween.js": "^17.4.0",
+        "install": "^0.13.0",
         "jszip": "^2.6.1",
+        "npm": "^8.17.0",
         "stats-js": "^1.0.1",
         "three": "^0.106.2",
-        "typescriptwebpacksupport": "^1.1.0"
+        "typescriptwebpacksupport": "^2.0.8"
     }
 }

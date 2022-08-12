@@ -1,6 +1,6 @@
 /// <reference path="three_renderer/ModelRenderer.ts" />
 
-import { ThingworxRuntimeWidget, TWService, TWProperty } from 'typescriptwebpacksupport'
+import { ThingworxRuntimeWidget, TWProperty } from 'typescriptwebpacksupport/widgetRuntimeSupport'
 import { ModelRenderer, RendererOptions, PositionOptions } from './three_renderer/ModelRenderer';
 
 @ThingworxRuntimeWidget
@@ -33,7 +33,7 @@ export class ThreeModelViewer extends TWRuntimeWidget {
         this.modelRenderer.loadModel(value, this.getProperty("ModelType"), this.getProperty("TexturePath"), true);
     };
 
-    private afterRenderResolve: (() => void);
+    private afterRenderResolve: ((value: void) => void);
 
     /**
      * Promise that resolves one the widget has been fully initialized 

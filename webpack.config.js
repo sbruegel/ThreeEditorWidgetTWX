@@ -1,6 +1,7 @@
 'use strict';
 const path = require('path');
 const fs = require('fs');
+const glob = require( 'glob' );  
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
@@ -12,6 +13,7 @@ const CleanWebpackPlugin = require('clean-webpack-plugin').CleanWebpackPlugin;
 const ZipPlugin = require('zip-webpack-plugin');
 // enable reading master data from the package.json file
 let packageJson = require('./package.json');
+let twxCredentials = require('./credentials.json');
 // look if we are in initialization mode based on the --init argument
 const isInitialization = process.argv.indexOf('--env.init') !== -1;
 // look if we are in initialization mode based on the --init argument
@@ -157,8 +159,12 @@ module.exports = function (env, argv) {
         compiler.hooks.run.tap('InitializeProjectPlugin', function () {
             console.log(`Generating widget with name: ${packageJson.name}`);
             // rename the ide.ts and runtime.ts files
-            fs.renameSync('src/demoWebpack.ide.ts', `src/${packageJson.name}.ide.ts`);
-            fs.renameSync('src/demoWebpack.runtime.ts', `src/${packageJson.name}.runtime.ts`);
+            glob('src/*.ide.ts', function(er, files) {
+                fs.renameSync(files[0], `src/${packageJson.name}.ide.ts`);  
+            })
+            glob('src/*.runtime.ts', function(er, files) {
+                fs.renameSync(files[0], `src/${packageJson.name}.runtime.ts`);
+            })
         });
     };
 
@@ -233,13 +239,13 @@ module.exports = function (env, argv) {
         });
     };
 
-    // if the upload is inabled, then add the uploadToThingworxPlugin with the credentials from package.json
+    // if the upload is enabled, then add the uploadToThingworxPlugin with the credentials from package.json
     if (uploadEnabled) {
         result.plugins.push(
             new UploadToThingworxPlugin({
-                thingworxServer: packageJson.thingworxServer,
-                thingworxUser: packageJson.thingworxUser,
-                thingworxPassword: packageJson.thingworxPassword
+                thingworxServer: twxCredentials.thingworxServer,
+                thingworxUser: twxCredentials.thingworxUser,
+                thingworxPassword: twxCredentials.thingworxPassword
             })
         );
     }

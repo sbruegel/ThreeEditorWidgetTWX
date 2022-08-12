@@ -4,6 +4,7 @@ ui
 .gradle
 build
 zip
+credentials.json
 Thingworx_Blank_ModelViewer/
 !Three Model Viewer Guide.docx
 !CompatibleModels.ods

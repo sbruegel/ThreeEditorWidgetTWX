@@ -1,4 +1,4 @@
-TW.Runtime.Widgets.ThreeModelViewer = function () {
+TW.Runtime.Widgets.ThreeEditorThingworx = function () {
     var thisWidget = this;
     // controls of the OrbitControls and EventsControls
     var controls, eventControls, transformControls;
