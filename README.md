@@ -6,7 +6,7 @@ The Three Editor widget is based on [three.js](http://threejs.org/) and is capab
 
 ### How to get set up
 
-* Import last version from [releases](/sbruegel/ThreeEditorWidgetTWX/releases) 
+* Import last version from [releases](/releases/latest) 
 * Use the *Three Editor* widget in a mashup
 * On the widgets, configure them according to the documentation
 * To build the importable zip extension see [here](#setup-environment). 
