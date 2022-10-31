@@ -13,7 +13,7 @@ import { EventsControls } from './EventControls';
 import { rgba2hex } from './utilities';
 import * as Stats from 'stats-js';
 import { ModelLoaderFactory } from './Loader'
-import { Renderer } from 'three';
+//import { Renderer } from 'three';
 
 // declare this here for no errors
 declare const WEBGL: any;
@@ -92,6 +92,7 @@ export interface RendererOptions {
         loadedSucessful: (url?: string) => void;
         loadingError: (url?: string) => void;
         selectedItemChanged: (itemName: string, itemId: string) => void;
+        //RAY
     },
     misc: {
         /**
@@ -214,7 +215,7 @@ export class ModelRenderer {
         });
         this.renderer.setPixelRatio(window.devicePixelRatio);
         // create a camera 
-        this.camera = new THREE.PerspectiveCamera(60, canvas.clientWidth / canvas.clientHeight, 0.1, 10000);
+        this.camera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 0.1, 200);
 
         // enable statistics tracking if needed 
         if (options.helpers.showStats) {
@@ -433,42 +434,40 @@ export class ModelRenderer {
         this.transformControls = new TransformControls(this.camera, this.renderer.domElement);
         // TODO: should not add stuff on window
         window.addEventListener('keydown', (event) => {
-            switch (event.keyCode) {
-                case 81: // Q
+            switch (event.code) {
+                case "KeyQ"://81: // Q
                     this.transformControls.setSpace(this.transformControls.space === "local" ? "world" : "local");
                     break;
-                case 17: // Ctrl
-                    //@ts-ignore
-                    this.transformControls.setTranslationSnap(100);
-                    //@ts-ignore
-                    this.transformControls.setRotationSnap(THREE.Math.degToRad(15));
-                    break;
-                case 87: // W
+                case "KeyW"://87: // W
                     this.transformControls.setMode("translate");
                     break;
-                case 69: // E
+                case "KeyE"://69: // E
                     this.transformControls.setMode("rotate");
                     break;
-                case 82: // R
+                case "KeyR"://82: // R
                     this.transformControls.setMode("scale");
                     break;
-                case 187:
-                case 107: // +, =, num+
+                case "Equal"://187:
+                case "NumpadAdd"://107: // +, =, num+
                     this.transformControls.setSize(this.transformControls.size + 0.1);
                     break;
-                case 189:
-                case 109: // -, _, num-
+                case "Minus"://189:
+                case "NumpadSubtract"://109: // -, _, num-
                     this.transformControls.setSize(Math.max(this.transformControls.size - 0.1, 0.1));
                     break;
+            }
+            if(event.ctrlKey) {
+                //@ts-ignore
+                this.transformControls.setTranslationSnap(100);
+                //@ts-ignore
+                this.transformControls.setRotationSnap(THREE.Math.degToRad(15));
             }
         });
         // TODO: should not add stuff on window
         window.addEventListener('keyup', (event) => {
-            switch (event.keyCode) {
-                case 17: // Ctrl
-                    this.transformControls.setTranslationSnap(null);
-                    this.transformControls.setRotationSnap(null);
-                    break;
+            if (event.ctrlKey) {
+                this.transformControls.setTranslationSnap(null);
+                this.transformControls.setRotationSnap(null);
             }
         });
         this.scene.add(this.transformControls);

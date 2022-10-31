@@ -301,7 +301,7 @@ export class CreoViewLoader extends ModelLoader {
             return loadPvzModel(this.url);
         } else {
             let libthingloadPromise = new Promise((resolve) => {
-                CVThreeLoader.Init('/Thingworx/Common/extensions/ThreeModelViewer_ExtensionPackage/ui/ThreeModelViewer/static/libthingload', () => {
+                CVThreeLoader.Init('/Thingworx/Common/extensions/ThreeEditorThingworx_ExtensionPackage/ui/ThreeEditorThingworx/static/libthingload', () => {
                     console.log('CVThreeLoader Ready');
                     window["cvApiInited"] = true;
                     resolve();

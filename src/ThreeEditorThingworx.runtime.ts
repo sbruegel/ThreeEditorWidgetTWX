@@ -1,10 +1,10 @@
 /// <reference path="three_renderer/ModelRenderer.ts" />
 
-import { ThingworxRuntimeWidget, TWProperty } from 'typescriptwebpacksupport/widgetRuntimeSupport'
+import { TWWidgetDefinition, TWProperty } from 'typescriptwebpacksupport/widgetRuntimeSupport'
 import { ModelRenderer, RendererOptions, PositionOptions } from './three_renderer/ModelRenderer';
 
-@ThingworxRuntimeWidget
-export class ThreeModelViewer extends TWRuntimeWidget {
+@TWWidgetDefinition
+export class ThreeEditorThingworx extends TWRuntimeWidget {
     updateProperty(info: TWUpdatePropertyInfo): void {
         this.setProperty(info.TargetProperty, info.SinglePropertyValue);
         switch (info.TargetProperty) {
