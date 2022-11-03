@@ -5,11 +5,11 @@ import { ThingworxComposerWidget } from 'typescriptwebpacksupport/widgetIDESuppo
 class ThreeEditorThingworx extends TWComposerWidget {
 
     widgetIconUrl(): string {
-        return require('./images/ThreeEditorThingworx.png');
+        return require( './images/ThreeEditorThingworx.png' );
     }
 
     widgetProperties(): TWWidgetProperties {
-        require("./styles/ThreeModelViewer.ide.css");
+        require( "./styles/ThreeModelViewer.ide.css" );
         return {
             'name': 'Three Editor',
             'description': 'Three Js based 3d Editor',
@@ -162,6 +162,13 @@ class ThreeEditorThingworx extends TWComposerWidget {
                     'defaultValue': false,
                     'isBindingTarget': true
                 },
+                'EnableRaycast': {
+                    'description': 'Enable process to get coordinates of model intersection from curser',
+                    'baseType': 'BOOLEAN',
+                    'isVisible': true,
+                    'defaultValue': false,
+                    'isBindingTarget': true
+                },
                 'EnableSelection': {
                     'description': 'Enable selection of child elements in the scene',
                     'baseType': 'BOOLEAN',
@@ -209,6 +216,20 @@ class ThreeEditorThingworx extends TWComposerWidget {
                     'isVisible': true,
                     'defaultValue': false,
                     'isBindingSource': true
+                },
+                'TotalPinNumber': {
+                    'description': 'Defines how much pin a user can place',
+                    'baseType': 'NUMBER',
+                    'isVisible': true,
+                    'defaultValue': 2,
+                    'isBindingSource': true
+                },
+                'PlacedPins': {
+                    'description': 'A list of all placed points if Raycasting is enabled',
+                    'baseType': 'INFOTABLE',
+                    'isVisible': true,
+                    'isBindingSource': true,
+                    'isBindingTarget': true
                 },
                 'TexturePath': {
                     'description': 'If textures are requested, what is the path to get them. If null, defaults to the folder where the scene is stored.',
@@ -291,19 +312,25 @@ class ThreeEditorThingworx extends TWComposerWidget {
 
     widgetServices(): Dictionary<TWWidgetService> {
         return {
-            "TestService": {
-
+            "PurgePins": {
+                "description": "Can be invoked to clear all placed pins."
             }
         };
     };
 
     widgetEvents(): Dictionary<TWWidgetEvent> {
         return {
-            'LoadDone': {
-                'warnIfNotBound': false
+            "LoadDone": {
+                "description": "Triggers if model loading was successful.",
+                "warnIfNotBound": false
             },
-            'LoadError': {
-                'warnIfNotBound': false
+            "LoadError": {
+                "description": "Triggers if model loading was not successful.",
+                "warnIfNotBound": false
+            },
+            "PinsPlaced": {
+                "description": "Triggers if all pins are placed see TotalPinCount.",
+                "warnIfNotBound": false
             }
         };
     }
@@ -332,6 +359,17 @@ class ThreeEditorThingworx extends TWComposerWidget {
                     },
                     "parentId": {
                         "name": "parentId",
+                        "baseType": "STRING"
+                    }
+                };
+            case "PlacedPins":
+                return {
+                    "position": {
+                        "name": "position",
+                        "baseType": "STRING"
+                    },
+                    "rotation": {
+                        "name": "rotation",
                         "baseType": "STRING"
                     }
                 };

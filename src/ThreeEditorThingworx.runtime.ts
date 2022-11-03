@@ -1,11 +1,13 @@
 /// <reference path="three_renderer/ModelRenderer.ts" />
 
-import { TWWidgetDefinition, TWProperty } from 'typescriptwebpacksupport/widgetRuntimeSupport'
+import { TWWidgetDefinition, TWProperty, TWService } from 'typescriptwebpacksupport/widgetRuntimeSupport'
 import { ModelRenderer, RendererOptions, PositionOptions } from './three_renderer/ModelRenderer';
 
 @TWWidgetDefinition
 export class ThreeEditorThingworx extends TWRuntimeWidget {
-    updateProperty(info: TWUpdatePropertyInfo): void {
+
+    updateProperty( info: TWUpdatePropertyInfo ): void {
+
         this.setProperty(info.TargetProperty, info.SinglePropertyValue);
         switch (info.TargetProperty) {
             case "ModelYOffset":
@@ -18,6 +20,7 @@ export class ThreeEditorThingworx extends TWRuntimeWidget {
             default:
                 break;
         }
+        
     }
     /**
      * Main renderer taking care of displaying the model
@@ -28,89 +31,117 @@ export class ThreeEditorThingworx extends TWRuntimeWidget {
         return '<div class="widget-content widget-ThreeModelViewer"><div class="spinner"></div><div class="inset"></div><div class="stats"></div></div>';
     };
 
-    @TWProperty("ModelUrl")
-    set modelUrl(value: string) {
-        this.modelRenderer.loadModel(value, this.getProperty("ModelType"), this.getProperty("TexturePath"), true);
+    @TWProperty( "ModelUrl" )
+    set modelUrl( value: string ) {
+        this.modelRenderer.loadModel( value, this.getProperty( "ModelType" ), this.getProperty( "TexturePath" ), true );
     };
 
-    private afterRenderResolve: ((value: void) => void);
+    @TWProperty( "PlacedPins" ) 
+    set placedPins( data: TWInfotable ) {
+        //console.log(data);
+        this.modelRenderer.loadPlacedPins( data );
+    };
+
+    @TWService( "PurgePins" )
+    purgePins() {
+
+        this.modelRenderer.purgeAllPins();
+        //this.jqElement.triggerHandler('SelectionDidChange');
+
+    }
+
+    private afterRenderResolve: ( ( value: void ) => void );
 
     /**
      * Promise that resolves one the widget has been fully initialized 
      * and THREE has been exported on window
      */
-    afterRendered = new Promise($0 => this.afterRenderResolve = $0);
+    afterRendered = new Promise( $0 => this.afterRenderResolve = $0 );
 
     async afterRender(): Promise<void> {
-        require("./styles/ThreeModelViewer.runtime.css");
+
+        require( "./styles/ThreeModelViewer.runtime.css" );
         // put THREE on window as it's required for the rest of the js in examples
-        let threeLoader = await import('three');
+        let threeLoader = await import( 'three' );
         window["THREE"] = threeLoader;
-        let renderer = await import('./three_renderer/ModelRenderer');
-        this.modelRenderer = new renderer.ModelRenderer(this.jqElement[0], this.widgetPropertiesToOptions());
-        this.modelRenderer.applyPositionChanges(this.widgetPositionPropertiesToOptions());
+        let renderer = await import( './three_renderer/ModelRenderer' );
+        this.modelRenderer = new renderer.ModelRenderer( this.jqElement[0], this.widgetPropertiesToOptions() );
+        this.modelRenderer.applyPositionChanges( this.widgetPositionPropertiesToOptions() );
         this.modelRenderer.render();
         // load the initial model, if set
-        if (this.getProperty("ModelUrl")) {
-            this.modelUrl = this.getProperty("ModelUrl");
+        if ( this.getProperty( "ModelUrl" ) ) {
+
+            this.modelUrl = this.getProperty( "ModelUrl" );
+
         }
         this.afterRenderResolve();
     }
 
     widgetPropertiesToOptions(): RendererOptions {
-        let backgroundStyle = TW.getStyleFromStyleDefinition(this.getProperty('BackgroundStyle', ''));
+
+        let backgroundStyle = TW.getStyleFromStyleDefinition( this.getProperty( 'BackgroundStyle', '' ) );
         let backgroundColor = backgroundStyle.backgroundColor ? backgroundStyle.backgroundColor : "rgba(255,255,255,0)";
 
         return {
             controls: {
-                cameraAutoRotate: this.getProperty("CameraAutoRotate"),
-                cameraControls: this.getProperty("CameraControls"),
-                enableSelection: this.getProperty("EnableSelection"),
-                transformControls: this.getProperty("TransformControls")
+                cameraAutoRotate: this.getProperty( "CameraAutoRotate" ),
+                cameraControls: this.getProperty( "CameraControls" ),
+                enableSelection: this.getProperty( "EnableSelection" ),
+                transformControls: this.getProperty( "TransformControls" ),
+                enableRaycast: this.getProperty( "EnableRaycast" )
             },
             helpers: {
-                drawAxesHelpers: this.getProperty("DrawAxisHelpers"),
-                drawGridHelpers: this.getProperty("DrawGridHelpers"),
-                showDataLoading: this.getProperty("ShowDataLoading"),
-                showStats: this.getProperty("ShowStats")
+                drawAxesHelpers: this.getProperty( "DrawAxisHelpers" ),
+                drawGridHelpers: this.getProperty( "DrawGridHelpers" ),
+                showDataLoading: this.getProperty( "ShowDataLoading" ),
+                showStats: this.getProperty( "ShowStats" )
             },
             style: {
                 backgroundColor: backgroundColor,
-                lightIntensity: this.getProperty("LightIntensity"),
+                lightIntensity: this.getProperty( "LightIntensity" ),
                 selectedMaterial: 'rgb(0,217,255)',
-                addLightsToSceneFiles: this.getProperty("AddLightsToSceneFiles")
+                addLightsToSceneFiles: this.getProperty( "AddLightsToSceneFiles" )
             },
             callbacks: {
                 loadedSucessful: () => {
-                    this.jqElement.triggerHandler("LoadDone");
+                    this.jqElement.triggerHandler( "LoadDone" );
                 },
                 loadingError: () => {
-                    this.jqElement.triggerHandler("LoadError");
+                    this.jqElement.triggerHandler( "LoadError" );
                 },
-                selectedItemChanged: (item, name) => {
-                    this.setProperty("SelectedItem", item);
-                    this.setProperty("SelectedItemName", name);
+                selectedItemChanged: ( item, name ) => {
+                    this.setProperty( "SelectedItem", item );
+                    this.setProperty( "SelectedItemName", name );
+                },
+                pinsPlaced: ( data ) => {
+                    this.setProperty( "PlacedPins", data );
+                    this.jqElement.triggerHandler( "PinsPlaced" );
                 }
             },
             misc: {
-                resetSceneOnModelChange: this.getProperty("ResetSceneOnModelChange"),
-                tweenInterval: this.getProperty("TweenInterval"),
-                enableQuaternionRotation: this.getProperty("EnableQuaternionRotation")
+                resetSceneOnModelChange: this.getProperty( "ResetSceneOnModelChange" ),
+                tweenInterval: this.getProperty( "TweenInterval" ),
+                enableQuaternionRotation: this.getProperty( "EnableQuaternionRotation" ),
+                totalPinNumber: this.getProperty( "TotalPinNumber" )
             }
         }
+
     }
 
     widgetPositionPropertiesToOptions(): PositionOptions {
+
         return {
-            modelYOffset: parseFloat(this.getProperty("ModelYOffset")),
-            rotationX: parseFloat(this.getProperty("Rotation Y")), // this are swapped for historical reasons
-            rotationY: parseFloat(this.getProperty("Rotation X")),
-            rotationZ: parseFloat(this.getProperty("Rotation Z")),
-            quaternion: this.getProperty("Quaternion")
+            modelYOffset: parseFloat( this.getProperty( "ModelYOffset" ) ),
+            rotationX: parseFloat( this.getProperty( "Rotation Y" ) ), // this are swapped for historical reasons
+            rotationY: parseFloat( this.getProperty( "Rotation X" ) ),
+            rotationZ: parseFloat( this.getProperty( "Rotation Z" ) ),
+            quaternion: this.getProperty( "Quaternion" )
         }
+
     }
 
-    handleSelectionUpdate?(property: string, selectedRows: any[], selectedRowIndices: number[]): void {
+    handleSelectionUpdate?( property: string, selectedRows: any[], selectedRowIndices: number[] ): void {
+
         switch (property) {
             // one handle single selection
             case "SceneTree":
@@ -125,14 +156,23 @@ export class ThreeEditorThingworx extends TWRuntimeWidget {
             default:
                 break;
         }
+
     }
 
-    serviceInvoked(name: string): void {
-        throw new Error("Method not implemented.");
+    serviceInvoked( name: string ): void {
+
+        throw new Error( "Method not implemented." );
+
     }
+
     beforeDestroy?(): void {
+
         if (this.modelRenderer) {
+
             this.modelRenderer.stopRendering();
+
         }
+
     }
+
 }

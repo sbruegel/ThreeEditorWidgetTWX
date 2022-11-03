@@ -2,7 +2,7 @@
     "name": "ThreeEditorThingworx",
     "version": "1.0.0",
     "description": "Three.JS editor for ThingWorx",
-    "author": "placatus, sbruegel & stincescu",
+    "author": "placatus & sbruegel",
     "minimumThingWorxVersion": "6.0.0",
     "homepage": "https://github.com/sbruegel/ThreeEditorWidgetTWX",
     "autoUpdate": {

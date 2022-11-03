@@ -62,9 +62,10 @@ module.exports = function (env, argv) {
             new CleanWebpackPlugin({
                 cleanOnceBeforeBuildPatterns: [path.resolve('build/**'), path.resolve('zip/**')]
             }),
+            new CopyWebpackPlugin([{ from: './src/images', to: 'images' }]),
             // in case we just want to copy some resources directly to the widget package, then do it here
             // in case the extension contains entities, copy them as well
-            new CopyWebpackPlugin([{ from: 'Entities', to: '../../Entities' }]),
+            //new CopyWebpackPlugin([{ from: 'Entities', to: '../../Entities' }]),
             // generates the metadata xml file and adds it to the archive
             new WidgetMetadataGenerator(),
             new webpack.DefinePlugin({
