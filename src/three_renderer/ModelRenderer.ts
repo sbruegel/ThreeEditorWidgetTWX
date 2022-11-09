@@ -8,12 +8,15 @@ import * as THREE from 'three';
 import * as TWEEN from '@tweenjs/tween.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls';
+import { Line2 } from 'three/examples/jsm/lines/Line2';
+import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import "script-loader!three/examples/js/WebGL";
 import { EventsControls } from './EventControls';
 import { rgba2hex } from './utilities';
 import * as Stats from 'stats-js';
 import { ModelLoaderFactory } from './Loader'
-import { Object3D } from 'three';
+import { Object3D, Vector3 } from 'three';
 //import { Renderer } from 'three';
 
 // declare this here for no errors
@@ -184,14 +187,29 @@ export class ModelRenderer {
     private raycastIndicator: THREE.Mesh;
 
     /**
+     * Used to tell click event if is allowed to fire
+     */
+    private orbitControlAction: boolean;
+
+    /**
      * Raycaster for positioning helper
      */
     private pinTable: TWInfotable;
 
     /**
-     * Raycaster for positioning helper
+     * Pin array knows all placed Pin Object so we can later better remove them
      */
     private pinObjArray: Array<THREE.Object3D>;
+
+    /**
+     * Pin array knows all placed Pin Object so we can later better remove them
+     */
+    private lineObjArray: Array<THREE.Object3D>;
+
+    /**
+     * Material used by the pin objs
+     */
+    private pinMaterial: THREE.SpriteMaterial;
 
     /**
      *  Since we can rotate the mode, expose the pivot and camera target to the function
@@ -247,14 +265,14 @@ export class ModelRenderer {
         let canvas = document.createElement( "canvas" );
         parent.appendChild( canvas );
         // create the renderer
-        this.renderer = new THREE.WebGLRenderer({
+        this.renderer = new THREE.WebGLRenderer( {
             antialias: true,
             canvas: canvas,
-            alpha: true,
-        });
-        this.renderer.setPixelRatio(window.devicePixelRatio);
+            alpha: true
+        } );
+        this.renderer.setPixelRatio( window.devicePixelRatio );
         // create a camera align with Thingview settings
-        this.camera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 0.1, 200);
+        this.camera = new THREE.PerspectiveCamera( 45, canvas.clientWidth / canvas.clientHeight, 0.01, 200 );
 
         // enable statistics tracking if needed 
         if ( options.helpers.showStats ) {
@@ -278,8 +296,7 @@ export class ModelRenderer {
             let color = rgba2hex( options.style.backgroundColor );
             this.renderer.setClearColor( color.color, color.opacity );
 
-        } 
-        else {
+        } else {
 
             this.renderer.setClearColor( options.style.backgroundColor );
 
@@ -320,11 +337,6 @@ export class ModelRenderer {
 
         this.scene = new THREE.Scene();
 
-        if ( options.helpers.drawGridHelpers ) {
-
-            this.scene.add( new THREE.GridHelper( 10, 10 ) );
-
-        }
         // enable raycasting
         if ( options.controls.enableRaycast ) {
 
@@ -347,6 +359,7 @@ export class ModelRenderer {
         this.camera.position.x = 7;
 
         this.scene[ "isModelViewerDefaultScene" ] = true;
+
     }
 
     /**
@@ -354,6 +367,7 @@ export class ModelRenderer {
      * @param options Lighting options
      */
     public initializeLights( options: RendererOptions ) {
+
         let lightGroup = new THREE.Group();
         lightGroup.name = "LightsGroup";
         // ambient light
@@ -378,6 +392,7 @@ export class ModelRenderer {
         lightGroup.add( directionalLight, dl1, dl2, dl3, dl4 );
 
         this.scene.add( lightGroup );
+
     }
 
     /**
@@ -385,6 +400,7 @@ export class ModelRenderer {
      * @param parent Where to draw the axes helpers
      */
     public initializeAxesHelpers( parent: HTMLElement ) {
+
         parent.style.width = '150px';
         parent.style.height = '150px';
 
@@ -407,12 +423,14 @@ export class ModelRenderer {
 
         // axes
         this.insetScene.add( new THREE.AxesHelper( 100 ) );
+
     }
 
     /**
      * Handles rendering of the axes helpers
      */
     renderAxesHelpers() {
+
         //copy position of the camera into inset
         this.insetCamera.position.copy( this.camera.position );
         this.insetCamera.position.sub( this.orbitControls.target );
@@ -420,6 +438,7 @@ export class ModelRenderer {
         this.insetCamera.lookAt( this.insetScene.position );
 
         this.insetRenderer.render( this.insetScene, this.insetCamera );
+
     }
 
     /**
@@ -427,6 +446,7 @@ export class ModelRenderer {
      * @param canvas Canvas to setup as responsive
      */
     initializeResponsiveCanvas( canvas: HTMLCanvasElement ) {
+
         // whenever the canvas resizes, we must be responsive.
         // so watch for canvas resizes via an interval
         function onResize( element, callback ) {
@@ -447,7 +467,7 @@ export class ModelRenderer {
             }, 500);
 
         }
-        onResize(canvas, () => {
+        onResize( canvas, () => {
 
             this.camera.aspect = canvas.clientWidth / canvas.clientHeight;
             this.camera.updateProjectionMatrix();
@@ -530,12 +550,12 @@ export class ModelRenderer {
      */
     initializeTransformControls() {
 
-        this.transformControls = new TransformControls(this.camera, this.renderer.domElement);
+        this.transformControls = new TransformControls( this.camera, this.renderer.domElement );
         // TODO: should not add stuff on window
         this.renderer.domElement.addEventListener( 'keydown', (event) => {
             switch (event.code) {
                 case "KeyQ"://81: // Q
-                    this.transformControls.setSpace(this.transformControls.space === "local" ? "world" : "local" );
+                    this.transformControls.setSpace( this.transformControls.space === "local" ? "world" : "local" );
                     break;
                 case "KeyW"://87: // W
                     this.transformControls.setMode( "translate" );
@@ -565,12 +585,12 @@ export class ModelRenderer {
             }
         });
         // TODO: should not add stuff on window
-        this.renderer.domElement.addEventListener( 'keyup', event => {
+        this.renderer.domElement.addEventListener( "keyup", event => {
 
             if ( event.ctrlKey ) {
 
-                this.transformControls.setTranslationSnap(null);
-                this.transformControls.setRotationSnap(null);
+                this.transformControls.setTranslationSnap( null );
+                this.transformControls.setRotationSnap( null );
 
             }
 
@@ -591,33 +611,33 @@ export class ModelRenderer {
             color: new THREE.Color( options.style.selectedMaterial )
         } );
 
-        this.eventControls.attachEvent( 'mouseOver', function () {
+        this.eventControls.attachEvent( "mouseOver", function () {
 
-            this.container.style.cursor = 'pointer';
+            this.container.style.cursor = "pointer";
             this.mouseOvered.oldMaterial = this.mouseOvered.material;
             this.mouseOvered.material = selectedMaterial;
 
         } );
 
-        this.eventControls.attachEvent( 'mouseOut', function () {
+        this.eventControls.attachEvent( "mouseOut", function () {
 
             this.mouseOvered.material = this.mouseOvered.oldMaterial;
 
         } );
 
-        this.eventControls.attachEvent( 'onclick', function () {
+        this.eventControls.attachEvent( "onclick", function () {
 
             var objectName;
             if ( this.event.object.name ) {
 
                 objectName = this.event.object.name;
 
-            } 
-            else {
+            } else {
 
                 objectName = this.event.object.parent.name;
 
             }
+
             if ( options.controls.transformControls ) {
 
                 transformControls.detach();
@@ -634,6 +654,7 @@ export class ModelRenderer {
      * Initializes ray casting 
      */
     initializeRaycasting( options: RendererOptions ) {
+
         this.pinTable = {
             dataShape: {
                 fieldDefinitions: {
@@ -650,31 +671,67 @@ export class ModelRenderer {
             rows: []
         };
         this.pinObjArray = [];
+        this.lineObjArray = [];
 
         this.raycaster = new THREE.Raycaster();
 
+        //Load Texture for pins
+        const loader = new THREE.TextureLoader();
+        this.pinMaterial = new THREE.SpriteMaterial( { 
+            map: loader.load( "/Thingworx/Common/extensions/ThreeEditorThingworx_ExtensionPackage/ui/ThreeEditorThingworx/images/icons8-location-100.png" ),
+            transparent: true
+        } );
+
         // Register mouse over event so we can cast from the coordinates
-        this.renderer.domElement.addEventListener( 'pointermove', event => {
-            //@ts-ignore
-            this.checkIntersection( event.layerX, event.layerY );
-        });
+        this.renderer.domElement.addEventListener( "pointermove", event => {
 
-        this.renderer.domElement.addEventListener( 'pointerdown', event => {
-            
-            if( ( this.pinTable.rows.length < this.options.misc.totalPinNumber ) && this.raycastIndicator.visible ) {
+            if( this.pinTable.rows.length < this.options.misc.totalPinNumber ) {
 
-                console.log( "place pin" );
-                // Create and add pin to scene
-                this.createPin( this.raycastIndicator );
-                
-            }
-            else {
-
-                console.log( "Restart placing!" );
+                //@ts-ignore
+                this.checkIntersection( event.layerX, event.layerY );
 
             }
-            
+
         });
+
+        // Suggest a non Orbit Control is fired
+        this.renderer.domElement.addEventListener( "pointerdown", event => {
+
+            this.orbitControlAction = false;
+            
+        } );
+
+        // If some value of the camera change like pan set that we using orbit control
+        this.orbitControls.addEventListener( "change", event => {
+
+            this.orbitControlAction = true;
+            
+        } );
+
+        // Save Location depending wether it is a normal click or dismiss if we moved through scene with orbit controls
+        this.renderer.domElement.addEventListener( "pointerup", event => {
+
+            if ( !this.orbitControlAction ) {
+
+                if( ( this.pinTable.rows.length < this.options.misc.totalPinNumber ) && this.raycastIndicator.visible ) {
+
+                    console.log( "place pin" );
+                    // Create and add pin to scene
+                    this.createPin( this.raycastIndicator, false );
+                    
+                } else {
+
+                    console.log( "You already placed " + this.pinTable.rows.length + " of " + this.options.misc.totalPinNumber + " pins" );
+
+                }
+
+            } else {
+                // Reset the action
+                this.orbitControlAction = false;
+            }
+
+        } );
+
     }
 
     /**
@@ -687,11 +744,9 @@ export class ModelRenderer {
         this.raycaster.setFromCamera( pointer, this.camera );
 
         const intersects = this.raycaster.intersectObjects( this.interactableModels, true );
-        //console.log(pointer, intersects, this.interactableModels);
+
         if ( intersects.length > 0 )  {
             
-            /* const p = intersects[ 0 ].point;
-            const n = intersects[ 0 ].face.normal.clone(); */
             
             this.raycastIndicator.position.set( 0, 0, 0 );
             this.raycastIndicator.lookAt( intersects[ 0 ].face.normal );
@@ -701,8 +756,7 @@ export class ModelRenderer {
 
             intersects.length = 0;
 
-        }
-        else {
+        } else {
 
             this.raycastIndicator.visible = false;
 
@@ -713,27 +767,58 @@ export class ModelRenderer {
     /**
      * Creates a pin at last intersected position
      * @param obj an THREE object3D to get position and rotation
+     * @param executeFromLoad is a value only given if we load pre defined pins so we do not update INFOTABLE again
      */
-    createPin( obj: Object3D ) {
+    createPin( obj: Object3D, executeFromLoad: boolean ) {
 
-        //ToDo Load Texture only once
-        const loader = new THREE.TextureLoader();
-        const material = new THREE.SpriteMaterial( { 
-            map: loader.load( "/Thingworx/Common/extensions/ThreeEditorThingworx_ExtensionPackage/ui/ThreeEditorThingworx/images/icons8-location-100.png" ),
-            transparent: true
-        } );
-        const plane = new THREE.Sprite( material );
+        /* const pin = new THREE.Sprite( this.pinMaterial );
 
-        // Create pivot
-        plane.center = new THREE.Vector2( 0.5, 0 );
+        // Pivot bottom center
+        pin.center.setY( 0 );
         // just want to have a 2cm big pin
-        plane.scale.multiplyScalar( 0.02 );
-        plane.position.copy( obj.position );
+        pin.scale.multiplyScalar( 0.02 );
+        pin.position.copy( obj.position ); */
 
-        this.scene.add( plane );
+        const sphere = new THREE.Mesh(
+            new THREE.SphereGeometry( 0.01, 10, 20 ),
+            new THREE.MeshBasicMaterial( {
+                color: 0xff5555
+            } )
+        );
+
+        sphere.position.copy( obj.position );
+
+        
+
+        this.scene.add( sphere );
 
         // Save them so we can later easier remove them!
-        this.pinObjArray.push( plane );
+        this.pinObjArray.push( sphere );
+
+        if( this.pinObjArray.length > 1 ) {
+
+            let test = new Array;
+            test = this.pinObjArray[ this.pinObjArray.length-2 ].position.toArray().concat( this.pinObjArray[ this.pinObjArray.length-1 ].position.toArray() );
+
+            console.log( test )
+
+            const line = new Line2( 
+                new LineGeometry().setPositions( test ),
+                new LineMaterial( {
+                    color: 0xff5555,
+                    linewidth: 0.01,
+                    dashed: false,
+                    depthTest: false
+                } )
+            );
+
+            line.renderOrder = this.scene.children.length;
+            this.scene.add( line );
+            console.log( line )
+
+            this.lineObjArray.push( line );
+
+        }
         
         // This will later responded in PinsPlaced Infotable!
         this.pinTable.rows.push( { 
@@ -741,11 +826,13 @@ export class ModelRenderer {
             rotation: THREE.Math.radToDeg( obj.rotation.x ) + " " + THREE.Math.radToDeg( obj.rotation.y ) + " " + THREE.Math.radToDeg( obj.rotation.z )
         } );
 
+        this.options.callbacks.pinsPlaced( this.pinTable );
+
         // Return the INFOTABLE if all pins are placed
         // This will also emit the event!
-        if( this.pinTable.rows.length == this.options.misc.totalPinNumber ) {
-
-            this.options.callbacks.pinsPlaced( this.pinTable );
+        if( ( this.pinTable.rows.length == this.options.misc.totalPinNumber ) && !executeFromLoad ) {
+  
+            this.raycastIndicator.visible = false;
 
         }
 
@@ -797,7 +884,7 @@ export class ModelRenderer {
 
         this.frameRequest = requestAnimationFrame( this.render );
         if ( this.stats ) {
-            
+
             this.stats.begin();
 
         }
@@ -872,8 +959,7 @@ export class ModelRenderer {
 
                 this.setSceneCommand( <THREE.Scene>object );
 
-            } 
-            else {
+            } else {
 
                 this.addObject3dToScene( object );
 
@@ -894,17 +980,19 @@ export class ModelRenderer {
      */
     loadPlacedPins( data: TWInfotable ) {
 
-        //@ts-ignore
-        console.log(data, data.rows);
+        this.purgeAllPins();
+
         data.rows.forEach( value => {
 
             console.log(value);
             let obj = new Object3D();
             obj.position.fromArray( value.position.split( " " ) )
             obj.rotation.fromArray( value.rotation.split( " " ) )
-            this.createPin( obj );
+            this.createPin( obj, true );
 
         } );
+
+        data = this.pinTable;
 
     }
 
@@ -917,12 +1005,19 @@ export class ModelRenderer {
         this.pinObjArray.forEach( child => {
             this.scene.remove( child ); 
         } );
+
+        this.lineObjArray.forEach( child => {
+            this.scene.remove( child ); 
+        } );
+        this.pinObjArray = [];
+        this.lineObjArray = [];
         // Empty INFOTABLE
         this.pinTable.rows = [];
+        this.options.callbacks.pinsPlaced( this.pinTable );
 
     }
 
-    setSceneCommand(sceneObject: THREE.Scene) {
+    setSceneCommand( sceneObject: THREE.Scene ) {
 
         //this.scene = sceneObject;
        
@@ -931,39 +1026,73 @@ export class ModelRenderer {
         //   mixer.stopAllAction();
         //}
         //mixer = new THREE.AnimationMixer(scene);
-        if (!this.scene["isModelViewerDefaultScene"] || this.options.misc.resetSceneOnModelChange) {
+        if ( !this.scene[ "isModelViewerDefaultScene" ] || this.options.misc.resetSceneOnModelChange ) {
 
-            this.initializeScene(this.options);
-            if (this.eventControls) {
+            this.initializeScene( this.options );
+            if ( this.eventControls ) {
 
                 this.eventControls.objects = [];
 
             }
 
-        }
+            if( this.options.controls.enableRaycast ) {
 
-        sceneObject.traverse((child) => {
-            //if ((<THREE.Mesh>child).isMesh) {
-                this.scene.add(child);
-            //}
-            if (this.options.controls.enableRaycast) {
-
-                this.interactableModels.push(child);
+                this.purgeAllPins();
 
             }
+
+        }
+
+        const bbox = new THREE.Box3();
+
+        sceneObject.children.forEach( child => {
+
+            this.scene.add( child );
+            bbox.setFromObject( child );
+
+            let distance = bbox.min.distanceTo( bbox.max );
+            let camPos = bbox.max.clone();
+            camPos.setLength( distance * 2.6 );
+
+            this.camera.position.copy( camPos );
+            this.camera.lookAt( bbox.max ); 
+
+            if ( this.options.controls.enableRaycast ) {
+
+                this.interactableModels.push( child );
+
+            }
+
         })
+
+        if ( this.options.helpers.drawGridHelpers ) {
+
+            let bboxSize = new THREE.Vector3();
+            let bboxCenter = new THREE.Vector3();
+            bbox.getCenter( bboxCenter );
+            bbox.getSize( bboxSize );
+
+            const GridHelper = new THREE.GridHelper( ( bboxSize.x > bboxSize.z ? bboxSize.x : bboxSize.z ) * 3, 10 );
+            GridHelper.position.setZ( bboxCenter.z );
+            GridHelper.position.setY( bbox.min.y );
+            GridHelper.position.setX( bboxCenter.x );
+
+
+            this.scene.add( GridHelper );
+
+        }
 
         if (this.eventControls) {
 
-            sceneObject.traverseVisible((child) => {
+            sceneObject.traverseVisible( child => {
 
-                if ((<THREE.Mesh>child).isMesh) {
+                if ( ( <THREE.Mesh>child ).isMesh ) {
 
-                    this.eventControls.attach(child);
+                    this.eventControls.attach( child );
 
                 }
                 
-            });
+            } );
 
         }
         /* if (this.options.helpers.drawGridHelpers) {
@@ -973,12 +1102,12 @@ export class ModelRenderer {
             this.initializeLights(this.options);
         }*/
         // search the scene if we have a camera. If so, clone it
-        for (var index = 0; index < sceneObject.children.length; index++) {
+        for ( var index = 0; index < sceneObject.children.length; index++ ) {
 
-            var element = sceneObject.children[index];
-            if (element instanceof THREE.PerspectiveCamera) {
+            var element = sceneObject.children[ index ];
+            if ( element instanceof THREE.PerspectiveCamera ) {
 
-                this.setCameraOptions(element);
+                this.setCameraOptions( element );
 
             }
 
@@ -990,10 +1119,10 @@ export class ModelRenderer {
 
     addObject3dToScene( model: THREE.Object3D ) {
 
-        if (!this.scene["isModelViewerDefaultScene"] || this.options.misc.resetSceneOnModelChange) {
+        if ( !this.scene[ "isModelViewerDefaultScene" ] || this.options.misc.resetSceneOnModelChange ) {
 
-            this.initializeScene(this.options);
-            if (this.eventControls) {
+            this.initializeScene( this.options );
+            if ( this.eventControls ) {
 
                 this.eventControls.objects = [];
 
@@ -1007,7 +1136,7 @@ export class ModelRenderer {
         */
         if ( this.eventControls ) {
 
-            model.traverseVisible( ( child ) => {
+            model.traverseVisible( child => {
 
                 if ( ( <THREE.Mesh>child ).isMesh ) {
 

@@ -5,10 +5,13 @@ import { ThingworxComposerWidget } from 'typescriptwebpacksupport/widgetIDESuppo
 class ThreeEditorThingworx extends TWComposerWidget {
 
     widgetIconUrl(): string {
+
         return require( './images/ThreeEditorThingworx.png' );
+
     }
 
     widgetProperties(): TWWidgetProperties {
+
         require( "./styles/ThreeModelViewer.ide.css" );
         return {
             'name': 'Three Editor',
@@ -308,17 +311,24 @@ class ThreeEditorThingworx extends TWComposerWidget {
                 }
             }
         }
+        
     };
 
     widgetServices(): Dictionary<TWWidgetService> {
+
         return {
             "PurgePins": {
                 "description": "Can be invoked to clear all placed pins."
+            },
+            "UpdateRendererSize": {
+                "description": "Can be invoked to let THREE JS recalc canvas/renderer size."
             }
         };
+
     };
 
     widgetEvents(): Dictionary<TWWidgetEvent> {
+
         return {
             "LoadDone": {
                 "description": "Triggers if model loading was successful.",
@@ -333,10 +343,13 @@ class ThreeEditorThingworx extends TWComposerWidget {
                 "warnIfNotBound": false
             }
         };
+
     }
 
     renderHtml(): string {
+
         return '<div class="widget-content widget-model-viewer"></div>';
+
     };
 
     afterRender(): void {
@@ -346,6 +359,7 @@ class ThreeEditorThingworx extends TWComposerWidget {
     }
 
     getSourceDatashape(propertyName): any {
+
         switch (propertyName) {
             case "SceneTree":
                 return {
@@ -376,6 +390,7 @@ class ThreeEditorThingworx extends TWComposerWidget {
             default:
                 break;
         }
+
     }
 
 }

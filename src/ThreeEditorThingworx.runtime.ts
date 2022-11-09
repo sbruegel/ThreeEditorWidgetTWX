@@ -8,19 +8,19 @@ export class ThreeEditorThingworx extends TWRuntimeWidget {
 
     updateProperty( info: TWUpdatePropertyInfo ): void {
 
-        this.setProperty(info.TargetProperty, info.SinglePropertyValue);
-        switch (info.TargetProperty) {
+        this.setProperty( info.TargetProperty, info.SinglePropertyValue );
+        switch ( info.TargetProperty ) {
             case "ModelYOffset":
             case "Quaternion":
             case "Rotation X":
             case "Rotation Y":
             case "Rotation Z":
-                this.modelRenderer.applyPositionChanges(this.widgetPositionPropertiesToOptions());
+                this.modelRenderer.applyPositionChanges( this.widgetPositionPropertiesToOptions() );
                 break;
             default:
                 break;
         }
-        
+
     }
     /**
      * Main renderer taking care of displaying the model
@@ -28,25 +28,36 @@ export class ThreeEditorThingworx extends TWRuntimeWidget {
     modelRenderer: ModelRenderer;
 
     renderHtml(): string {
+
         return '<div class="widget-content widget-ThreeModelViewer"><div class="spinner"></div><div class="inset"></div><div class="stats"></div></div>';
+
     };
 
     @TWProperty( "ModelUrl" )
     set modelUrl( value: string ) {
+
         this.modelRenderer.loadModel( value, this.getProperty( "ModelType" ), this.getProperty( "TexturePath" ), true );
+
     };
 
     @TWProperty( "PlacedPins" ) 
     set placedPins( data: TWInfotable ) {
-        //console.log(data);
+        
         this.modelRenderer.loadPlacedPins( data );
+
     };
 
     @TWService( "PurgePins" )
     purgePins() {
 
         this.modelRenderer.purgeAllPins();
-        //this.jqElement.triggerHandler('SelectionDidChange');
+
+    }
+
+    @TWService( "UpdateRendererSize" )
+    updateRendererSize() {
+
+        this.modelRenderer.renderer.setSize( this.modelRenderer.renderer.domElement.clientWidth, this.modelRenderer.renderer.domElement.clientHeight );
 
     }
 
@@ -62,10 +73,10 @@ export class ThreeEditorThingworx extends TWRuntimeWidget {
 
         require( "./styles/ThreeModelViewer.runtime.css" );
         // put THREE on window as it's required for the rest of the js in examples
-        let threeLoader = await import( 'three' );
+        let threeLoader = await import( "three" );
         window["THREE"] = threeLoader;
-        let renderer = await import( './three_renderer/ModelRenderer' );
-        this.modelRenderer = new renderer.ModelRenderer( this.jqElement[0], this.widgetPropertiesToOptions() );
+        let renderer = await import( "./three_renderer/ModelRenderer" );
+        this.modelRenderer = new renderer.ModelRenderer( this.jqElement[ 0 ], this.widgetPropertiesToOptions() );
         this.modelRenderer.applyPositionChanges( this.widgetPositionPropertiesToOptions() );
         this.modelRenderer.render();
         // load the initial model, if set
@@ -79,7 +90,7 @@ export class ThreeEditorThingworx extends TWRuntimeWidget {
 
     widgetPropertiesToOptions(): RendererOptions {
 
-        let backgroundStyle = TW.getStyleFromStyleDefinition( this.getProperty( 'BackgroundStyle', '' ) );
+        let backgroundStyle = TW.getStyleFromStyleDefinition( this.getProperty( "BackgroundStyle", '' ) );
         let backgroundColor = backgroundStyle.backgroundColor ? backgroundStyle.backgroundColor : "rgba(255,255,255,0)";
 
         return {
@@ -145,7 +156,7 @@ export class ThreeEditorThingworx extends TWRuntimeWidget {
         switch (property) {
             // one handle single selection
             case "SceneTree":
-                if (selectedRows.length > 0) {
+                if ( selectedRows.length > 0 ) {
                     // find the object that has this id
                     //  var selectedObject = scene.getObjectById(selectedRows[0].id);
                     //selectedObject.oldMaterial = selectedObject.material;
@@ -167,7 +178,7 @@ export class ThreeEditorThingworx extends TWRuntimeWidget {
 
     beforeDestroy?(): void {
 
-        if (this.modelRenderer) {
+        if ( this.modelRenderer ) {
 
             this.modelRenderer.stopRendering();
 
